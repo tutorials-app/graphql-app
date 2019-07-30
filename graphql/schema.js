@@ -22,15 +22,35 @@ module.exports = buildSchema(`
 		email: String
 	}
 
-	union ResultType = User | Message
+	type MessageQuery {
+		list: [Message]
+		get(id: ID!): Message
+	}
+	
+	type UserQuery {
+		list: [User]
+		get(id: ID!): User
+	}
 
 	type Query {
-		list(model: String!): [Message]
-		get(model: String!, id: ID!): Message
+		messages: MessageQuery
+		users: UserQuery
+	}
+
+	type MessageMutation {
+		create(input: MessageInput): Message
+		update(id: ID!, input: MessageInput): Message
+		delete(id: ID!): Message
+	}
+
+	type UserMutation {
+		create(input: UserInput): User
+		update(id: ID!, input: UserInput): User
+		delete(id: ID!): User
 	}
 
 	type Mutation {
-		create(model: String!,input: MessageInput): Message
-		update(model: String!, id: ID!, input: MessageInput): Message
+		messages: MessageMutation
+		users: UserMutation
 	}
 `);

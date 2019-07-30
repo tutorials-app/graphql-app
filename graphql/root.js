@@ -7,68 +7,47 @@ const database = {
 };
 
 module.exports = {
-    list({model}) {
-        const docs = [];
-        const collection = database[model + 's'];
-        for (let id in collection) {
-            docs.push(new Model[model](id, collection[id]));
-        }
-        return docs;
-    },
-    get({model, id}) {
-        const collection = database[model + 's'];
-        if (!collection[id]) {
-            throw new Error('no document exists with id ' + id);
-        }
-        return new Model[model](id, collection[id]);
-    },
-    create({model, input}) {
-        const id = require('crypto').randomBytes(10).toString('hex');
-
-        database[model + 's'][id] = input;
-        return new Model[model](id, input);
-    }
+    messages: crud(Model['message'], database['messages']),
+    users: crud(Model['user'], database['users'])
 };
 
-function crud(Model, state) {
+function crud(Model, collection) {
     return {
-        get: function () {
-            const collection = database[state];
+        get({id}) {
             if (!collection[id]) {
                 throw new Error('no document exists with id ' + id);
             }
             return new Model(id, collection[id]);
         },
-        list: function () {
+        list() {
             const docs = [];
-            const collection = database[state];
             for (let id in collection) {
                 docs.push(new Model(id, collection[id]));
             }
             return docs;
         },
-        create: function ({ input }) {
+        create ({ input }) {
             var id = require('crypto').randomBytes(10).toString('hex');
 
-            database[state][id] = input;
+            collection[id] = input;
             return new Model(id, input);
         },
-        update: function ({ id, input }) {
-            if (!database[state][id]) {
+        update ({ id, input }) {
+            if (!collection[id]) {
                 throw new Error('no document exists with id ' + id);
             }
             // This replaces all old data, but some apps might want partial update.
-            database[state][id] = input;
+            collection[id] = input;
             return new Model(id, input);
         },
-        delete: function () {
-            if (!database[state][id]) {
+        delete ({id}) {
+            if (!collection[id]) {
                 throw new Error('no document exists with id ' + id);
             }
             // This replaces all old data, but some apps might want partial update.
-            const doc = clone(database[state][id]);
+            const doc = clone(collection[id]);
 
-            database[state][id] = undefined;
+            delete collection[id];
             return new Model(id, doc);
         }
     }
@@ -76,9 +55,9 @@ function crud(Model, state) {
 
 function clone(obj) {
     if (null == obj || "object" != typeof obj) return obj;
-    const copy = obj.constructor();
+    const copy = {};
     for (let attr in obj) {
-        if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
+        copy[attr] = obj[attr];
     }
     return copy;
 }
